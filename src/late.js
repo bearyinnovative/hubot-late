@@ -28,9 +28,13 @@ function getDayString (res) {
 module.exports = (robot) => {
 
   function checkAdmin (res) {
-    const lateData = loadLateData();
-    const admins = lateData["admins"] || []; // set admin list in late.json
-    return includes(admins, res.message.user.id);
+    if (process.env.HUBOT_LATE_ADMIN) {
+      const admins = process.env.HUBOT_LATE_ADMIN.split(",");
+      return includes(admins, res.message.user.id);
+    } else {
+      robot.logger.info("Please set hubot-late admin via HUBOT_LATE_ADMIN environment variable")
+      return false;
+    }
   }
 
   function loadLateData () {
