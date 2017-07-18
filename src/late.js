@@ -3,6 +3,7 @@
 const fs = require("fs");
 const moment = require("moment");
 const remove = require("lodash.remove");
+const includes = require("lodash.includes");
 const dataFilePath = "./data/late.json";
 
 (function ensureJsonFile() {
@@ -24,7 +25,7 @@ function getAmountByTimes(times) {
 function checkAdmin (res) {
   const lateData = loadLateData();
   const admins = lateData["admins"] || []; // set admin list in late.json
-  return admins.indexOf(res.message.user.id) !== -1;
+  return includes(admins, res.message.user.id);
 }
 
 function getDayString (res) {
@@ -94,7 +95,7 @@ module.exports = (robot) => {
     const luckyGuys = res.match[1].replace(/@<=/g, '').replace(/=>/g, '').split(' ').filter(Boolean);
     const dayString = getDayString(res);
     let lateGuys = lateData[dayString] || [];
-    remove(lateGuys, (id) => luckyGuys.indexOf(id) > -1);
+    remove(lateGuys, (id) => includes(luckyGuys, id));
     lateData[dayString] = lateGuys;
     saveLateData(lateData);
     if (lateGuys.length === 0) {
@@ -123,7 +124,7 @@ module.exports = (robot) => {
     Array(31).fill().forEach((_, index) => {
       const dayString = `0${index + 1}`.slice(-2);
       const lateGuys = lateData[`${monthString}-${dayString}`] || [];
-      if (lateGuys.indexOf(member) !== -1) {
+      if (includes(lateGuys, member)) {
         days.push(`${dayString}号`);
       }
     });
