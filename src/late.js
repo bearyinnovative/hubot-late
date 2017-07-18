@@ -22,8 +22,8 @@ function getAmountByTimes(times) {
 }
 
 function checkAdmin (res) {
-  const lateMap = JSON.parse(fs.readFileSync(dataFilePath));
-  const admins = lateMap["admins"] || []; // set admin list in late.json
+  const lateData = loadLateData();
+  const admins = lateData["admins"] || []; // set admin list in late.json
   return admins.indexOf(res.message.user.id) !== -1;
 }
 
@@ -35,6 +35,14 @@ function getDayString (res) {
   } else {
     return moment().format('YYYY-MM-DD');
   }
+}
+
+function loadLateData () {
+  return JSON.parse(fs.readFileSync(dataFilePath));
+}
+
+function saveLateData (data) {
+  fs.writeFileSync(dataFilePath, JSON.stringify(data));
 }
 
 module.exports = (robot) => {
@@ -57,23 +65,23 @@ module.exports = (robot) => {
       res.send(`你没有权限哦~`);
       return;
     }
-    const lateMap = JSON.parse(fs.readFileSync(dataFilePath));
+    const lateData = loadLateData();
     const newLateGuys = res.match[1].replace(/@<=/g, '').replace(/=>/g, '').split(' ').filter(Boolean);
     const dayString = getDayString(res);
-    let lateGuys = lateMap[dayString] || [];
+    let lateGuys = lateData[dayString] || [];
     lateGuys = Array.from(new Set(lateGuys.concat(newLateGuys)));
-    lateMap[dayString] = lateGuys;
-    fs.writeFileSync(dataFilePath, JSON.stringify(lateMap));
+    lateData[dayString] = lateGuys;
+    saveLateData(lateData);
     res.send(`好～已经记下了，${dayString} 迟到的人有 ${renderMembers(lateGuys)}`);
   });
 
   robot.respond(/我迟到了/i, (res) => {
-    const lateMap = JSON.parse(fs.readFileSync(dataFilePath));
+    const lateData = loadLateData();
     const todayString = moment().format('YYYY-MM-DD');
-    let lateGuys = lateMap[todayString] || [];
+    let lateGuys = lateData[todayString] || [];
     lateGuys = Array.from(new Set(lateGuys.concat(res.message.user.id)));
-    lateMap[todayString] = lateGuys;
-    fs.writeFileSync(dataFilePath, JSON.stringify(lateMap));
+    lateData[todayString] = lateGuys;
+    saveLateData(lateData);
     res.send(`好～已经记下了，你很自觉`);
   });
 
@@ -82,13 +90,13 @@ module.exports = (robot) => {
       res.send(`你没有权限哦~`);
       return;
     }
-    const lateMap = JSON.parse(fs.readFileSync(dataFilePath));
+    const lateData = loadLateData();
     const luckyGuys = res.match[1].replace(/@<=/g, '').replace(/=>/g, '').split(' ').filter(Boolean);
     const dayString = getDayString(res);
-    let lateGuys = lateMap[dayString] || [];
+    let lateGuys = lateData[dayString] || [];
     remove(lateGuys, (id) => luckyGuys.indexOf(id) > -1);
-    lateMap[dayString] = lateGuys;
-    fs.writeFileSync(dataFilePath, JSON.stringify(lateMap));
+    lateData[dayString] = lateGuys;
+    saveLateData(lateData);
     if (lateGuys.length === 0) {
       res.send(`好吧 ${dayString} 还没人迟到呢`);
     } else {
@@ -97,9 +105,9 @@ module.exports = (robot) => {
   });
 
   robot.respond(/谁迟到了/i, (res) => {
-    const lateMap = JSON.parse(fs.readFileSync(dataFilePath));
+    const lateData = loadLateData();
     const todayString = moment().format('YYYY-MM-DD');
-    let lateGuys = lateMap[todayString] || [];
+    let lateGuys = lateData[todayString] || [];
     if (lateGuys.length === 0) {
       res.send(`截至到目前，今天还没人迟到`);
     } else {
@@ -110,11 +118,11 @@ module.exports = (robot) => {
   robot.respond(/(.*\s|我)迟到几次/i, (res) => {
     let days = [];
     const member = res.match[1] === '我' ?  res.message.user.id : res.match[1].replace(/@<=/g, '').replace(/=>/g, '').replace(/ /g, '');
-    const lateMap = JSON.parse(fs.readFileSync(dataFilePath));
+    const lateData = loadLateData();
     const monthString = moment().format('YYYY-MM');
     Array(31).fill().forEach((_, index) => {
       const dayString = `0${index + 1}`.slice(-2);
-      const lateGuys = lateMap[`${monthString}-${dayString}`] || [];
+      const lateGuys = lateData[`${monthString}-${dayString}`] || [];
       if (lateGuys.indexOf(member) !== -1) {
         days.push(`${dayString}号`);
       }
@@ -133,11 +141,11 @@ module.exports = (robot) => {
       return;
     }
     let daysMap = {};
-    const lateMap = JSON.parse(fs.readFileSync(dataFilePath));
+    const lateData = loadLateData();
     const monthString = moment().format('YYYY-MM');
     Array(31).fill().forEach((_, index) => {
       const dayString = `0${index + 1}`.slice(-2);
-      const lateGuys = lateMap[`${monthString}-${dayString}`] || [];
+      const lateGuys = lateData[`${monthString}-${dayString}`] || [];
       lateGuys.forEach((member) => {
         daysMap[member] = (daysMap[member] || 0) + 1;
       })
