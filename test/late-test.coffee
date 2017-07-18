@@ -3,7 +3,7 @@ chai = require 'chai'
 
 expect = chai.expect
 
-helper = new Helper('../src/late.coffee')
+helper = new Helper('../src/late.js')
 
 describe 'late', ->
   beforeEach ->
@@ -12,16 +12,16 @@ describe 'late', ->
   afterEach ->
     @room.destroy()
 
-  it 'responds to hello', ->
-    @room.user.say('alice', '@hubot hello').then =>
-      expect(@room.messages).to.eql [
-        ['alice', '@hubot hello']
-        ['hubot', '@alice hello!']
-      ]
-
-  it 'hears orly', ->
-    @room.user.say('bob', 'just wanted to say orly').then =>
-      expect(@room.messages).to.eql [
-        ['bob', 'just wanted to say orly']
-        ['hubot', 'yarly']
-      ]
+ #it 'responds to hello', ->
+ #  @room.user.say('alice', '@hubot hello').then =>
+ #    expect(@room.messages).to.eql [
+ #      ['alice', '@hubot hello']
+ #      ['hubot', '@alice hello!']
+ #    ]
+ #
+ #it 'hears orly', ->
+ #  @room.user.say('bob', 'just wanted to say orly').then =>
+ #    expect(@room.messages).to.eql [
+ #      ['bob', 'just wanted to say orly']
+ #      ['hubot', 'yarly']
+ #    ]
