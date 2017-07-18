@@ -4,15 +4,7 @@ const fs = require("fs");
 const moment = require("moment");
 const remove = require("lodash.remove");
 const includes = require("lodash.includes");
-const dataFilePath = "./data/late.json";
-
-(function ensureJsonFile() {
-  try {
-    JSON.parse(fs.readFileSync(dataFilePath));
-  } catch (err) {
-    fs.writeFileSync(dataFilePath, JSON.stringify({}));
-  }
-})();
+const dataFilePath = process.env.HUBOT_LATE_JSON_FILE;
 
 function renderMembers(members) {
   return members.map((id) => `@<=${id}=>`).join(' ');
@@ -22,11 +14,6 @@ function getAmountByTimes(times) {
   return Math.pow(2, times) * 10 - 10;
 }
 
-function checkAdmin (res) {
-  const lateData = loadLateData();
-  const admins = lateData["admins"] || []; // set admin list in late.json
-  return includes(admins, res.message.user.id);
-}
 
 function getDayString (res) {
   if (res.match[2]) {
@@ -38,15 +25,39 @@ function getDayString (res) {
   }
 }
 
-function loadLateData () {
-  return JSON.parse(fs.readFileSync(dataFilePath));
-}
-
-function saveLateData (data) {
-  fs.writeFileSync(dataFilePath, JSON.stringify(data));
-}
-
 module.exports = (robot) => {
+
+  function checkAdmin (res) {
+    const lateData = loadLateData();
+    const admins = lateData["admins"] || []; // set admin list in late.json
+    return includes(admins, res.message.user.id);
+  }
+
+  function loadLateData () {
+    if (dataFilePath) {
+      return JSON.parse(fs.readFileSync(dataFilePath)) || {};
+    } else {
+      return JSON.parse(robot.brain.get("hubot-late")) || {};
+    }
+  }
+
+  function saveLateData (data) {
+    if (dataFilePath) {
+      fs.writeFileSync(dataFilePath, JSON.stringify(data));
+    } else {
+      robot.brain.set("hubot-late", JSON.stringify(data));
+    }
+  }
+
+  (function ensureJsonFile() {
+    try {
+      loadLateData();
+    } catch (err) {
+      saveLateData({});
+    }
+  })();
+
+
   robot.respond(/迟到(帮助| help)/i, (res) => {
     res.send(`迟到相关暗语说明：
 1. @xxx 迟到了 => 添加当天迟到，HR 专用
