@@ -2,6 +2,8 @@
 
 record every late in your team
 
+NOTE: this sciprt supprt hubot-bearychat adapter only. universal support and english version coming soon.
+
 See [`src/late.coffee`](src/late.coffee) for full documentation.
 
 ## Installation
@@ -16,13 +18,6 @@ Then add **hubot-late** to your `external-scripts.json`:
 [
   "hubot-late"
 ]
-```
-
-## Sample Interaction
-
-```
-user1>> hubot hello
-hubot>> hello!
 ```
 
 ## NPM Module

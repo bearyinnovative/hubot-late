@@ -1,10 +1,10 @@
 {
   "name": "hubot-late",
   "description": "record every late in your team",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "author": "loddit <loddit@gmail.com>",
   "license": "MIT",
-  "keywords": "oa, late",
+  "keywords": "oa, late, hubot, bearychat",
   "repository": {
     "type": "git",
     "url": "git://github.com/hubot-scripts/hubot-late.git"
