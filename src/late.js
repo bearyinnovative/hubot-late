@@ -10,11 +10,6 @@ function renderMembers(members) {
   return members.map((id) => `@<=${id}=>`).join(' ');
 }
 
-function getAmountByTimes(times) {
-  return Math.pow(2, times) * 10 - 10;
-}
-
-
 function getDayString (res) {
   if (res.match[2]) {
     const date = parseInt(res.match[2].replace("号"));
@@ -147,7 +142,7 @@ module.exports = (robot) => {
     if (length === 0) {
       res.send(`截至到目前，${renderMembers([member])} 还没有迟到～`);
     } else {
-      res.send(`截至到目前，${renderMembers([member])} 迟到了 ${length} 次，分别是 ${days.join(",")}\n需捐赠一熊房产 ${getAmountByTimes(length)} 大洋`);
+      res.send(`截至到目前，${renderMembers([member])} 迟到了 ${length} 次，分别是 ${days.join(",")}`);
     }
   });
 
@@ -175,9 +170,8 @@ module.exports = (robot) => {
       };
     }).forEach((member) => {
       const days = daysMap[member];
-      text += `${renderMembers([member])} 迟到了 ${days} 次，需捐赠一熊房产 ${getAmountByTimes(days)} 大洋\n`;
+      text += `${renderMembers([member])} 迟到了 ${days} 次`;
     });
-    text += `本月一熊房产累计收入: ${Object.values(daysMap).map(getAmountByTimes).reduce((a, b) => a + b)} 大洋`;
     res.send(text);
   });
 }
