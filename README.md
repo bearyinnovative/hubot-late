@@ -8,6 +8,12 @@ See [`src/late.js`](src/late.js) for detail.
 
 ## Installation
 
+### Prepare
+
+Please prepare hubot-bearychat according to the doc [hubot-bearychat](https://github.com/bearyinnovative/hubot-bearychat) first.
+
+### Install
+
 In hubot project repo, run:
 
 `npm install hubot-late --save`
@@ -19,6 +25,26 @@ Then add **hubot-late** to your `external-scripts.json`:
   "hubot-late"
 ]
 
+```
+
+## Sample Interaction
+
+```
+user>> 迟到 help
+hubot>> 迟到相关暗语说明：
+        1. @xxx 迟到了 => 添加当天迟到，HR 专用
+        2. @xxx 没迟到 => 取消当天迟到，HR 专用
+        3. @xxx n号迟到了 => 添加当月n号迟到，HR 专用
+        4. @xxx n号没迟到 => 取消当月n号迟到，HR 专用
+        5. @xxx 迟到几次了 => 查别人迟到
+        6. 谁迟到了 => 今天谁迟到了
+        7. 我迟到了 => 自己招了
+        8. 我迟到几次了 => 查自己迟到
+        9. 迟到汇总 => 月底算总帐，HR 专用
+user>> 我迟到了
+hubot>> 好～已经记下了，你很自觉
+user>> 我迟到几次了
+hubot>> 截至到目前，@tangxm 迟到了 1 次，分别是 16号
 ```
 
 ## Setup
