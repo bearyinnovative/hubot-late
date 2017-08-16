@@ -1,3 +1,28 @@
+//Description:
+//  Record every late in your team
+//
+//Configuration:
+//
+// HUBOT_LATE_JSON_FILE
+//
+//Commands:
+// hubot 迟到 help - 获取迟到相关使用帮助
+// hubot @xxx 迟到了 - 添加当天迟到，迟到管理员专用
+// hubot @xxx 没迟到 - 取消当天迟到，迟到管理员专用
+// hubot @xxx n号迟到了 - 添加当月n号迟到，迟到管理员专用
+// hubot @xxx n号没迟到 - 取消当月n号迟到，迟到管理员专用
+// hubot @xxx 迟到几次了 - 查别人迟到
+// hubot 谁迟到了 - 今天谁迟到了
+// hubot 我迟到了 - 自己招了
+// hubot 我迟到几次了 - 查自己迟到
+// hubot 迟到汇总 - 月底算总帐，迟到管理员专用
+// hubot 迟到管理员 - 列出所有迟到管理员，第一次使用的时候为初始化自己为迟到管理员
+// hubot 添加迟到管理员 @xxx - 添加迟到管理员
+// hubot 删除迟到管理员 @xxx - 删除迟到管理员
+//
+//Author:
+//  loddit
+
 "use strict";
 
 const fs = require("fs");
@@ -23,11 +48,12 @@ function getDayString (res) {
 module.exports = (robot) => {
 
   function checkAdmin (res) {
-    if (process.env.HUBOT_LATE_ADMIN) {
-      const admins = process.env.HUBOT_LATE_ADMIN.split(",");
+    const lataData = loadData();
+    const admins = lataData.admins || [];
+    if (admins.length) {
       return includes(admins, res.message.user.id);
     } else {
-      robot.logger.info("Please set hubot-late admin via HUBOT_LATE_ADMIN environment variable")
+      robot.logger.info("还没有迟到管理员，先对 Hubot 说 `迟到管理员` 来初始化");
       return false;
     }
   }
@@ -59,15 +85,18 @@ module.exports = (robot) => {
 
   robot.respond(/迟到(帮助| help)/i, (res) => {
     res.send(`迟到相关暗语说明：
-1. @xxx 迟到了 => 添加当天迟到，HR 专用
-2. @xxx 没迟到 => 取消当天迟到，HR 专用
-3. @xxx n号迟到了 => 添加当月n号迟到，HR 专用
-4. @xxx n号没迟到 => 取消当月n号迟到，HR 专用
+1. @xxx 迟到了 => 添加当天迟到，迟到管理员专用
+2. @xxx 没迟到 => 取消当天迟到，迟到管理员专用
+3. @xxx n号迟到了 => 添加当月n号迟到，迟到管理员专用
+4. @xxx n号没迟到 => 取消当月n号迟到，迟到管理员专用
 5. @xxx 迟到几次了 => 查别人迟到
 6. 谁迟到了 => 今天谁迟到了
 7. 我迟到了 => 自己招了
 8. 我迟到几次了 => 查自己迟到
-9. 迟到汇总 => 月底算总帐，HR 专用
+9. 迟到汇总 => 月底算总帐，迟到管理员专用
+10. 迟到管理员 => 列出所有迟到管理员，第一次使用的时候为初始化自己为迟到管理员
+11. 添加迟到管理员 @xxx => 添加迟到管理员
+12. 删除迟到管理员 @xxx => 删除迟到管理员
     `);
   });
 
@@ -94,6 +123,58 @@ module.exports = (robot) => {
     lateData[todayString] = lateGuys;
     saveLateData(lateData);
     res.send(`好～已经记下了，你很自觉`);
+  });
+
+
+  robot.respond(/迟到管理员/i, (res) => {
+    const lateData = loadData();
+    const admins = lateData.admins || [];
+    if (admins.length) {
+      res.send(`当前的迟到管理员是 ${renderMembers(admins)}`);
+    } else {
+      const uid = res.message.user.id;
+      admins.push(uid);
+      lateData.admins = admins;
+      saveData(lateData);
+      res.send(`初始化迟到管理员成功，当前管理员是 ${renderMembers(admins)}`);
+    }
+  });
+
+
+  robot.respond(/添加迟到管理员 (.+)/i, (res) => {
+    if (!checkadmin(res)) {
+      res.send(`你没有权限哦~`);
+      return;
+    }
+    const lateData = loadData();
+    const admins = lateData.admins || [];
+    const newAdminId = res.match[1].replace(/@<=/g, '').replace(/=>/g, '').trim();
+    if (includes(admins, newAdminId)) {
+      res.send(`${renderMembers([newAdminId])} 已经是迟到管理员`);
+    } else {
+      admins.push(newAdminId);
+      lateData.admins = admins;
+      saveData(lateData);
+      res.send(`添加 ${renderMembers([newAdminId])} 为迟到管理员`);
+    }
+  });
+
+  robot.respond(/删除迟到管理员 (.+)/i, (res) => {
+    if (!checkAdmin(res)) {
+      res.send(`你没有权限哦~`);
+      return;
+    }
+    const lateData = loadData();
+    const admins = lataData.admins || [];
+    const delAdminId = res.match[1].replace(/@<=/g, '').replace(/=>/g, '').trim();
+    if (includes(admins, delAdminId)) {
+      remove(admins, delAdminId);
+      lataData.admins = admins;
+      saveData(lataData);
+      res.send(`把 ${renderMembers([delAdminId])} 从迟到管理员里移除`);
+    } else {
+      res.send(`${renderMembers([delAdminId])} 不是迟到管理员`);
+    }
   });
 
   robot.respond(/(.+) (\d+号|)没迟到/i, (res) => {
